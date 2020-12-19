@@ -1,0 +1,30 @@
+module_4.txt
+
+module_4.txt
+HDFS location:
+	hdfs://cxln1.c.thelab-240901.internal:8020/user/vardanmanam7585/
+spark-shell is the driver code. It is one of the way to run the spark cluster
+
+-copy from local into HDFS
+	hdfs dfs -copyFromLocal spark.txt hdfs://cxln1.c.thelab-240901.internal:8020/user/vardanmanam7585/
+
+-make a directory
+	hdfs dfs -ls harsha
+
+-list all files
+	hdfs dfs -ls dfs://cxln1.c.thelab-240901.internal:8020/user/vardanmanam7585/
+
+- read a file from hdfs in spark. We dont have to type in the location as its already hooked
+	val file= sc.textFile("spark.txt")
+-print first line:
+	file.first()
+val words=file.flatMap(x=>x.split(',')).map(x=>(x,1))
+
+words.foreach(println)
+val word_count=words.reduceByKey((x,y)=>x+y)
+
+-filter:
+	val file_filter=file.filter(x=>x.contains("spark"))
+
+driver gathers counts rom partitions and aggregates. we can customize all these
+	
