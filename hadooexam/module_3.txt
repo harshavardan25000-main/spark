@@ -1,1 +1,56 @@
 //Enter text here
+
+hdfs design:
+instead of single file in one system, it can store or distribute in multiple systems. HDFS
+- have to deal with lots of network to do it and lots of hardware coding. hdfs takes care of everything
+- where to user:
+	very large files,streaming data access ie read data in bigger volume rather than single record. write once and read many times
+-dont want to use expensive hardware. can work on commodity hardware
+- dont use when you want low latency access, typical use is data warehouse.
+-dont use when you have lot of small files because namenode has to store metadata of all the files and if lots of small files then namenode memory goes out of memory.
+
+-parallel writes is not good..
+
+Fundamentals of HDFS:
+- blocks: every file system has blocks. file is divided into blocks and typically they are of 512 bytes.
+- hdfs: 64 MB default and 128 MB max . 6400 MB /100 blocks = 64 blocks
+	- if the file is smaller than the block size then block will be made of the smaller size as its optimized.
+-daemon services of HDFS:
+	master slave architexture
+	-namenode
+		based on GFS.master is namenode. client directly contacts NN and NN gives the address of data nodes where they can store the blocks. NN stores this metadata.
+		- when nN crashes, entire cluster is lost. single point of failure in generation 1
+
+	-secondary namenode
+		-it reads the lof from NN ie from edit log. its like a checkpoint service. when the NN goes down no automatic failover.. Admin has to come and take the latest copy and start the namenode. It salmost certain we will lose the data.
+	-datanode
+		they are slaves
+- replication: copy of the data replciated into a,b,c. there is replication factor.
+-Racks: each rack has a switch and they all have another switch to communicate between racks.
+-rack awareness: NN has rack information. in case of rack failure, NN will replicate the lost blocks based on the metadata and can be recovered.
+
+Command uitility:
+	ls -list all files
+	mkdir - creates directory
+	copyfromlocal-local to hdfs
+	copytolocal-hdfs to local
+	mvtolocal
+	rm
+	setRep -w 4 -R dir/subdir 
+writing the file in HDFS:
+	contacts NN and recieves the DN info where it can store the blocks
+	also DN will contact other DN to get ready and its low latency as its between racks
+	reading similar to writing
+HDFS Federation:
+	NN pushes into RAM. It gets full even though many nodes are still available.
+	Federation enables to keep on creating NN one for each department, branch etc. but they all hook on to the same cluster
+
+High availability of NN:
+	- It is a single point of failure. We can create active and passive node unlike secondary where it just keeps in sync the editlog
+	- DNs communicates to both the nodes.
+	- when one crashes, other can easily be used since we dont lose any information unlike generation 1
+
+Parallel Copying of Data : Distcp
+	-say we have prod and stage and test and you want to copy data to all the environments.use this
+	-hadoop distcp hdfs ://NN1 hdfs ://uat:80
+	-internally uses mapreduce and it takes care of everything.
