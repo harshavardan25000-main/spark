@@ -1,0 +1,34 @@
+module_5.txt
+
+Programming with RDDS
+
+- once RDD is created , it cannot be modified
+- RDD is broken into partitions and then distributed in different nodes.
+- caculations occurs in each parition on each node and then brought back to driver only when the action is called.
+
+- RDD can contains any objects.
+
+- two wasy to create RDD.
+	sc.textFile('pathtofile')
+	sc.parallelize(List('string1','string2'))
+	
+val lines=sc.textFile("spark.txt")
+val spark=lines.filter(line=>line.contains("spark"))
+val hadoopexam=lines.filter(line=>line.contains("hadoopexam"))
+val union_rdd=spark.union(hadoopexam)
+union_rdd.foreach(println)
+union_rdd.collect()
+
+-union is bit differnt. when you union two rdds, it combines all the rows into single row as array and displays but if oyu do count on it, it will show 3 for example.
+-Lineage Graph: graph is created when transformations is applied and then when action is called the entire graph is executed.
+It uses the inofrmation to compute RDD on demand and to recover lost data if part of a persistent RDD is lost.
+
+- Transformations return RDD whereas action returns some other data type.
+
+-lines.take(2).foreach(println)
+- can be saved as saveAsSequenceFile()
+- RDDs are recomputed everytime we run action on them. Persist it if we are planning to use it many times. After computing it first time, spark will store the RDD contentes in memory partitioned across machines in the cluster adn reuse them in future actions.
+- Persisting RDDs on disk instead of memory is also possible
+- lines.persist()
+-IN MAPREDUCE OFTEN WE NEED TO SPEND TIME MINIMIZING THE NUMBER OF MAPREDUCE PASSES BY GROUPING TOGETHER OPERATIONS
+
