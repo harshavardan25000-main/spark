@@ -1,0 +1,40 @@
+module_6.txt
+Scala Functional Programming
+
+scala is both OOP and functional programming.
+
+Using Function Literals:
+anonymous functions
+
+val x=List.range(1,10)
+val evens=x.filter((i:int)=>i%2==0)
+val evens=x.filter(_%2==0)
+
+we are defining the function in runtime.
+
+val x=List.range(1,10)
+val evens=x.filter(i=>i%2==0)
+val evens=x.filter(_%2==0)
+
+val multiply= (i:Int)=>{i*2}
+
+create a function and assign to a variable
+multiply(2)
+val list=List.range(1,6)
+list.map(multiply())
+
+//Implicit
+val add=(x:Int,y:Int)=>{x+y}
+val add=(x:Int,y:Int)=>x+y
+//Explicit
+val add:(Int:Int)=>Int=(x,y)=>{x+y}
+
+Define a method that accepts a simple functon:
+
+Unit is Void 
+
+def executeFuncton(f:()=> Unit){
+	f()
+}
+
+val sayHello= ()=>{print("Hello")}
