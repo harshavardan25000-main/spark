@@ -1,0 +1,35 @@
+module_8.txt
+
+Spark Actions:
+===============
+
+it forces the evaluation of the transformations since its lazy.
+
+reduce(): takes a function argument, which works on two elements. It is iteratively called on each element
+
+fold(): takes a zero value as initial value. 0 as summationand 1 for multiplication. empty collection for concatenation
+
+List(1,2,3,4).fold(0)(_+)
+
+on each iteration 0 is added but it wont affect the count because it has 0reduce internally uses fold. if you encounter empty collection it throws error , and at that time fold should be used
+aggregate(): will have a different output type. It has the initial value as well.
+
+Accumulator:
+	 similar to the counter in the mapreduce. can be accessed only by driver program. counter is accuulated in each partition. cannot be read on worker.
+
+		val accum=sc.accumulator(0,"name")
+		sc.parallelize(Array(1,2,3,4).foreach(x=>accum+x))
+
+		accum.value
+
+		if accumulator is created with name it can be seen in UI.
+
+		Aggregate: initial value and 2 functions are to be provided.
+		first function is used to combine data in local worker and second function is used to merge data from accumulators.
+
+input.aggregate(0,0)((acc,val)=>acc_1+val,acc_2+1,(acc1,acc2)=>acc1_1+acc2_val,acc1_2+acc2_2)
+
+val result=input.aggregate(0,0)((acc,value)=>(acc._1+value,acc._2+1),(acc1,acc2)=>(acc1._1+acc2._1,acc1._2+acc2._2))
+val avg_result=result._1/result._2
+count(): returns number of elements in the RDD
+countByValue(): Number of times each element occurs in RDD => rdd.countByValue()
