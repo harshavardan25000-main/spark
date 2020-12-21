@@ -1,0 +1,25 @@
+module_7.txt
+
+Transformations:
+================
+
+map,filter,flatmap
+element wise transformation: map and filter are 2 examples of it.
+List[1,2,3,4].map(_*2)
+
+Flatmap: falttens, produces multiple outputs for each input. Not one to one
+
+The function returns list of iterators with return values and flashmap will combine everything and display as one.
+
+val input= sc.parallelize(List(1,2,3,4))
+val result=input.map(i=>i*i)
+println(result.collect().mkString(","))
+
+def f(x:Int)= if (x>2)  Some(x) else None
+
+val result=l.map(x=>f(x))
+
+def g(v:Int)=l.map(x=>g(x))
+
+rdd1.union(rdd2)
+rdd1.subtract(other)
