@@ -1,0 +1,31 @@
+module_9.txt
+Spark Execution Model:
+======================
+in order to optimize code , we need to understand this model
+
+application consists of 1) driver 2) set of executor processes(scatter across nodes)
+
+-Driver: control high level flow of work that needs to be done
+-Executor: executing the control flow, in the form of tasks. It also stores the data that the user choose to cache.
+
+Job contains tasks and execute concurrently.
+
+- a single executor has a number of slots available for running tasks and will run many concurrently.
+
+-The execution plan is created. the entire flow is converted into plan from action to read from file or cache.
+
+-The execution plan consists of aseembling the job's transformations into stages
+
+- A stage corresponds to a collection of tasks that all executes the same code , each on a different subset of data
+if you have two transformations say map and filter..they dont need any other partition , hence they are in one stage.
+Each stage contains sequence of transformations that doesn't needs to be shuffled
+-Narrow transformations: doesn't need shuffling
+-wide: needs shuffling
+
+groupByKey or reduceByKey
+data needs to be shuffled for this. 
+-results in a new stage with new set of partitions
+
+At each stage boundry , the results are saved onto disk. should be avoided to prevent slowness.
+
+Transformations that may trigger a stage boundary typically accept "numPartitions" argument that determines how many partitions to split the data into child stage.
