@@ -1,0 +1,23 @@
+module_11.txt
+
+RDD Functions hands on
+======================
+
+pair RDD functions:
+methods defined becomes available when data itels have two componenet structures
+
+val a=sc.parallelize(List("dog","cat","owl","gnu","ant"),2)
+val b=a.map(x=>(x.length,x))
+b.reduceByKey(_+_).collect()
+b.foldByKey("")(_+_).collect()
+
+val a= sc.parallelize(List("dog","cat","gnu","salmon","rabbit","turkey","wolf","bear","bee"),3)
+val b=sc.parallelize(List(1,1,2,2,2,1,2,2,2),3)
+val c=b.zip(a)
+c.combineByKey(List(_),(x:List[String],y:String)=>y::x,(x:List[String],y:List[String])=>x:::y)
+
+groupByKey should be avoided
+
+
+val  b= a.keyBy(_.length)
+b.groupByKey.collect()
