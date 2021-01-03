@@ -1,0 +1,35 @@
+module_10.txt
+
+Key Value Pair RDD:
+===================
+used in many big data applications
+ip and search: you can see what he looks for using big data application.
+- they will be tuples mostly
+-(ip,search keyword)
+- in hadoop when file is loaded , each line becomes a value.
+
+-byte offset as a key for that line
+Ex:
+	val input=sc.textFile("pathtofile")
+	val key_rdd=input.map(x=>(x.length,x))
+
+Aggregation:
+reduceByKey() are transforrmations but reduce() is action  same for all
+foldByKey()
+
+spark uses its own combiner if not specified. we can create our own combiner
+
+combineByKey(): underlying function by many other functions
+.Allows to return values that are not the same type of input data
+
+val result=input.combineByKey()
+(
+(v)=(v,1)
+(acc:(Int,Int),v
+(acc1:(Int,Int),acc2:(Int,Int)=>acc1._1+acc2._1,acc1._2+acc2._2)
+)
+
+combiner is like a mini reducer on partitions. creates a combiner locally if there isn't one already created. 
+if the combiner is already created and a key whose combiner is created comes again then it will use the second function to add the value to the already created combiner.. finally accumulators of all the partitions are merged.
+
+Learn more about combiners
