@@ -1,0 +1,21 @@
+module_13:
+
+sequence file
+=============
+file based data structure
+	1) sequence file
+	2) Map file
+
+key 			value
+binary format   binary format
+
+producing log files every day
+key can be timestamp and value can be file itself..
+
+advantage: can compress the data
+None, recordlevel which is file itself, blocklevel(first 3 records in block 1, next 3 in 2...)
+lesser diskspace, less IO, less bandwidth, splittable on blocklevel
+
+small file problem:
+pool all small files by having a key and save it as sequence file...that way we can process one big file
+
