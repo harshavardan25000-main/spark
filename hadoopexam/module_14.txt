@@ -1,0 +1,67 @@
+module_14.txt
+Spark Broadcast Variable
+========================
+broadcast variable
+accumulator
+
+these are spark shared variables
+
+BC:
+spark programs often need access to data that is not part of an RDD.
+
+val shared = Map(1->"a",2->"e",3->"i",4->"o",5->"u")
+
+val result= sc.parallelize(Array(1,2,3)).map(lookup(_))
+
+assert(result.collect().toSet()===Set("a","e","i"))
+
+for each task over the network it the lookup table is sent. spark will send it separately for each operation.. driver to node gets repeated.
+
+broadcast:
+even here it will be sent over the network but it is sent only once.
+lookup table is resued for all the tasks.
+
+a broadcast variable is an object of type
+
+spark.broadcast.Broadcast[T]
+T-> datatype: int, double,string or any serializable
+
+to access the broadcast variable on node, you need to use value method to fetch value
+
+val lookup:Broadcast[Map[Int,String]]=sc.broadcast(Map(1->"a",2->"e",3->"i",4->"o",5->"u"))
+val result=sc.parallelize(Array(2,1,3)).map(lookup(_))
+
+no way to update broadcast variable . if you want to modify the variable and send it back then use accumulator
+
+default serialization is very slow..can use kryo
+
+Accumulators:
+============
+
+it is a type of cummunication pattern of aggregation of result...From node to driver
+
+Ex:number of elements in an rdd of integers to accuulators
+
+val count:Accumulator[Int]=sc.accumulator(0)
+
+
+accumulators are sent only when the task is successfuly completed. so they are guaranteed to be correct
+they are executed only once.
+update must be performed inside action only.
+restarted tasks will not update the value.
+
+It will try 5 times and tehn will fail and raise exceptions
+
+if an executor node crashes, hardware failes,spark goes back to the stage that generated the shuffle output.
+
+map task executed on failed task and on new node..accumulator could give wrong result.
+
+slow task: speculative execution:
+
+spark will start the same task on another node and see if it completes there
+
+accumulator will give wrong value
+
+cache RDD: if rdd is huge and cannot reside in memory it gets spilled over disk
+
+Bottom line:: use only in action or use it only for debugging
