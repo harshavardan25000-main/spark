@@ -1,0 +1,27 @@
+module_12.txt
+
+PairRDD Joining Grouping Sorting
+================================
+val words=Array("one","two","two","three","three","three")
+val wordsPairRdd=sc.parallelize(words).map(x=>(x,1))
+val wordCountsWithReduce=wordsPairRdd.reduceByKey(_+_).collect
+
+in group by: all the values with same key are moved to a single node...high IO...if a single key has more values then it might cause memory full issues...so we avoid it by using the reduce by key since it reduces locally and avoids large NW IO
+
+val wordCountWithGroup=wordsPairRdd.groupByKey().map(x=>(x._1,x._2.sum))
+
+cogroup: combines or groups all the RDD for the same key. Its a generalization of group
+
+rdd1.cogroup(rdd2,rdd3).collect
+
+join: joining datasets , similar to RDBMS
+left outer join
+right outer join
+cross joins
+
+Sorting:
+we can sort the data with key value pairs
+custom comparator will help us implementing custom sorted order
+
+zip: done between two RDD. first element or one rdd and first element of another rdd are created as key value pairs
+
