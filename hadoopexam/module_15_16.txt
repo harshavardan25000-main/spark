@@ -1,0 +1,43 @@
+module_15_16.txt
+
+Accumulator Hands on:
+=====================
+
+hdfs dfs -ls hdfs://cxln1.c.thelab-240901.internal:8020/user/vardanmanam7585/
+hdfs dfs -mkdir hdfs://cxln1.c.thelab-240901.internal:8020/user/vardanmanam7585/shared_variable
+
+hdfs dfs -copyFromLocal file1.txt file2.txt file3.txt file4.txt hdfs://cxln1.c.thelab-240901.internal:8020/u
+ser/vardanmanam7585/shared_variable
+
+hdfs dfs -ls hdfs://cxln1.c.thelab-240901.internal:8020/user/vardanmanam7585/shared_variable
+
+val ac=sc.accumulator(0)
+val words=sc.textFile("shared_variable")
+val words=sc.textFile("shared_variable").flatMap(x=>x.split("\\W+"))
+words.foreach(x=>ac+=1)
+ac.value
+
+E01,John,36
+E02,Rakesh,27
+E03,Amit,45
+
+emp.map(x=>x.split(",")(2)).foreach(x=>ac+=x.toInt)
+garbage collector automatically cleans it up.
+
+Broadcast Variables:
+====================
+
+we have two datasets to join..one dataset is small..then we can use braodcast to distribute the smaller to the nodes/partitions/cluster
+
+val emp=sc.textFile("employee.txt")
+val empRDD=emp.map(x=>(x.split(",")(1),x.split(",")(2)))
+
+val lookup=sc.textFile("city.txt")
+val cities=lookup.map(x=>(x.split(",")(1),x.split(",")(2)))
+cities.collect
+
+val bcities=sc.broadcast(cities.collectAsMap()) // creates a key value pair
+
+val joined=empRDD.mapPartitions(
+row=> row.map(x=>x._1,x._2,bcities.value.getOrElse(x._2,-1)),preservesPArtitioning=true)
+)
