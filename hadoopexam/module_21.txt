@@ -1,0 +1,16 @@
+module_21.txt
+
+spark SQL hands on
+==================
+
+val hc=new org.apache.spark.sql.hive.HiveContext(sc)
+
+hc.sql("create table if not exists hadoopExamEmployee(first_name string,last_name string,age int) row format del
+imited fields terminated by ','")
+hc.sql("load data inpath '/user/vardanmanam7585/employee.csv' into table hadoopExamEmployee")
+val employee=hc.sql("select * from hadoopExamEmployee")
+
+employee.collect.foreach(println)
+
+hc.sql("create table hadoopexam2 as select first_name,last_name from hadoopExamEmployee")
+hc.sql("select * from hadoopexam2").collect.foreach(println)
