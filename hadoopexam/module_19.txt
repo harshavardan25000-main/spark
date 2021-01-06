@@ -1,0 +1,15 @@
+module_19.txt
+
+Remove header from CSV
+======================
+csv.map(x=>x.split(",").map(_.trim)).collect
+
+val first=csvRDD.first
+
+csvRDD.filter(x=>x(0)!=first(0)).collect
+
+val data=csvRDD.filter(x=>x(0)!=first(0))
+
+data.map(x=>first.zip(x).toMap).collect
+val result=maps.filter(map=>map("id") != "myself")
+result.saveAsTextFile("removeHeader.csv")
