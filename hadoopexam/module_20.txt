@@ -1,0 +1,61 @@
+module_20.txt
+
+Spark SQL
+=========
+can process data from hdfs,cassandra,hbase,rdbms
+
+when we read data stored in hdfs using sparksql, you need to give or define some structure to make it some sense out of data
+
+apache hive is a relational operation which converts the sql queries to mapreduce job.
+
+hive engine to read data stored in hdfs
+
+shark replaced the mapreduce with spark engine and retaining most of the codebase
+	still used hive QL
+decided to write sql engine from scratch as all optimization sis done..
+this is call sparksql
+
+can use data from all.
+sparksql took care of all performance challenges.
+
+hive context was created on top of sql context...a wrapper class.
+people use hivecontext beuase you get more features
+
+lets developers use less code, program to read less data
+
+catalyst optimizer: do many optimizations for task performance
+
+dataframe API: spark SQL used a programming abstraction called dataframes.
+DF is a distributed collection of data organized in named columns,
+it is equivalet to a database table , but provides much finer level of optimization.
+
+RDD vs DF:
+----------
+RDD: collection of objects with no idea about the structure or format of the underlygin data.
+DF: needs to have schema associated with it.. RDD+Schema
+
+schema RDD: was replaced by DF
+DF is much richer than schema rdd
+
+DF can load data from all. can be viewed as RDD of row objects, allowing developers to call procedural API such as map.
+
+entry point of sparksql is SQLContext.
+
+There are two wasy to associate schemas to RDD, to create DF
+	1) easier way is to leverage scala case classes. It uses java reflection to deduce schema from case classes...its like a template.
+	2) programatically assign schema for advanced needs
+
+catalyst optimizer:
+goals
+1) make adding new optiomizations techniques easy
+2) enables extenernal developers to extenf the optimizer
+sparkSQL uses catalyst transformation framework in 4 phases.
+1) analyze a logical plan to resolve references
+2) logical plan optimization
+3) physical planning
+4) code generation to compile the parts of the query to java byte code.-------XXXXX------ read in detail
+
+we will be using hivecontect
+.window functions are introduced.
+They can be used to solve complex problems, without going back and forth between RDDS and DFs
+
