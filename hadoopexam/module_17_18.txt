@@ -1,0 +1,40 @@
+module_17_18.txt
+
+Spark Api  handson Lab
+======================
+
+hdfs dfs -copyFromLocal content.txt remove.txt hdfs://cxln1.c.thelab-240901.internal:8020/user/vardanmanam75
+85/
+
+val content=sc.textFile("content.txt")
+val remove=sc.textFile("remove.txt")
+
+remove.flatMap(x=>x.split(",")).map(x=>x.trim).collect
+
+val bc=sc.broadcast(removeRDD.collect.toList)
+
+val contentRDD=content.flatMap(x=>x.split(" "))
+
+val filtered=contentRDD.filter{case(word)=> !bc.value.contains(word)}
+
+val filtered=contentRDD.filter(x=> !bc.value.contains(x))
+
+filtered.map(x=>x.split(",").flatMap(x=>(x,1)).reduceByKey(_+_)).collect
+
+filtered.flatMap(x=>x.split(",")).map(x=>(x,1)).reduceByKey(_+_).collect
+
+employeeName.csv: eid,name
+
+employeeSalary.csv: eid,salary
+make it key value pairs and its easy to join them.
+val nameRDD=name.map(x=>(x.split(",")(0),x.split(",")(1)))
+
+val salaryRDD=salary.map(x=>(x.split(",")(0),x.split(",")(1)))
+val joined=name.join(salary)
+
+val joinedRDD=nameRDD.join(salaryRDD)
+
+val main_rdd=joinedRDD.values
+val swap_rdd=main_rdd.map(x=>x.swap)
+val grpKey=swap_rdd.groupByKey()
+
