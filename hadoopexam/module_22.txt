@@ -1,0 +1,66 @@
+module_22.txt
+
+Implementing business logic using spark SQL
+===========================
+
+we can query csv without creating a table.
+
+auctioned,bid,bidtime,bidder,bidderrate,openbid,price,item,daystolive
+0,12,13,434,baman,12,22,book1,5
+1,13,24,444,fdfdf,11,12,gook1,6
+
+// used to connect to data
+val sqlContext=new org.apache.spark.sql.SQLContext(sc)
+// used to convert RDD to DF
+import sqlContext.implicits._
+// import sql datatypes and row
+import org.apache.spark.sql._
+
+val dataFile=sc.textFile("data.csv")
+
+//define scala case class
+
+assume class which has two members/elements. to define the data..get, set, equals method etc are already implements. It takes pages to implement this using java. its easy and simplified in case...limitation is 22 elements
+
+case class Data(auctionID:String,bid:Float,bidtime:Float,bidder:String,bidderrate:Integer,openbid:Float,price:Fl
+oat,item:String,dayaToLive:Integer)
+
+This is used to define the schema 
+
+//create a RDD of data objects
+val allData=dataFile.map(x=>x.split(",")).map(x=>Data(x(0),x(1).toFloat,x(2).toFloat,x(3),x(4),x(5).toFloat,x(6)
+.toFloat,x(7),x(8).toInt))
+
+rdd contains data objects; it has metadata and data in each row
+assume its rows of the table
+MapPartitionRDD will be created
+
+when queiered it will return Data object, the case class that we created
+
+DF: a dataframe is distributed collecton of data organized into names columns. spark sql supports automatically converting an RDD containing case classes into DF with method toDF().
+----------######--------------imp----
+val rddDF=allDataRDD.toDF()
+
+we cannot convert any RDD into DF. it needs to have schema or you have to have case class.
+
+rddDF.show()=> will show entire table
+rddDF.printSchema()=> prints the schema on screen
+API methods:
+------------
+rddDF.select("auctionID").distinct.count
+rddDF.groupBy("auctionid","item").count.show
+rddDF.groupBy("auctionid","item").count.agg(min("count"),avg("count"),max("count")).show
+
+val highPrice=rddDF.filter("price>100")
+
+register DF as a Temporary Table:
+===========================
+rddDF.registerTempTable("datatable")
+val results=sqlContext.sql("select  auctionid,item,count(bid) from datatable group by auctionid,item")
+results.show()
+
+//Getting physical plan of the query
+
+.explain
+
+
