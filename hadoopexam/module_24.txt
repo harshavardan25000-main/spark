@@ -1,0 +1,28 @@
+module_24.txt
+
+spark streaming part 2
+======================
+
+Stateless and stateful transformations
+-----------------------
+
+driver program using streaming context launches spark job to process recieved data. the streaming context deals with spark context to launch the receiver which is nothing but a long running task. The role of the reciever is to continusoly read the data which might be coming from flume or kinesis or kafka and creates Dstreams (mini batches RDD). Those get copied on other nodes as data replication and then anothee executor is launched where the spark context launches many small tasks to process it and outputs the batches.
+
+receiver: long running taks running within applicationt hat collects data from input source and save it as RDD. This RDD is stored in memory of the executor as same way as cached RDD.
+
+Lineage graph is created same as core spark. Time consuming though..beacause the entire process will be re-ran...so some checkpointing has to be done.
+
+Checkpointing is a mechanism that saves the state periodically to reliable filesystem eg: hdfs,s3
+
+typically checkpointing done every 5-10 batches of data.
+
+Two types of transformation:
+-stateful
+	one RDD is depended on previous RDD.average price..
+	sliding windows
+-stateless
+	processing of each bach doesn't depend on previous batch. ex filter,map,reduceByKey,repartition,groupbykey
+
+-we can also join data on the fly
+-trasnform()- allows you to operate directly on the RDDs inside them
+val customRDD=datastream.transform(rdd=>customTransformation(rdd))
