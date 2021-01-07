@@ -1,0 +1,73 @@
+module_23.txt
+
+Spark Streaming:
+================
+-On the fly data processing
+real/near real time
+-d-streamns discretized streams
+-dtream conceps
+-stock visualization example
+
+hadoop framework is best suited for batch processing.
+
+all the files are stored in HDFS..run jobs to process it using spark core and map reduce.
+
+But what about on the fly data processing?
+
+as soon as data arrives, process it
+
+Near real time: ex: for every 5 min
+
+this one below is standard..non streaming pipeline
+
+weblogs----> flume--->hdfs sink
+
+stock prices----> kafka messaging ----> hdfs sink
+
+
+this one below is streaming
+
+weblogs---> flume---> spark Streaming---> hdfs sink
+stockprices--> kafka--->spark Streaming--->HDFS
+
+example applications:
+-fraud detection
+-sensors malfunctioning
+-sentiment analysis
+-website analysis
+
+data sources:
+------------
+apache flume
+kafka
+amazon kinesis
+cassandra
+twitter
+
+Sinks:
+-------
+hdfs
+hbase
+cassandra
+s3
+
+spark streaming is extension of the core spark API
+
+streaming operations: 
+----------------------
+map,reduce, join,window
+
+-each micro batch is replicated at least on two nodes
+-each micro batch is processed by spark engine in parallel in sequence
+-output will be in batches
+
+--batches of input produced by spark streaming engine are called Dstreams(sequence of RDD)
+
+Creation of D Stream: can be created from streams. 
+new batch RDD are created at regular intervals--5 ms batch size
+
+batch interval: typically 500 ms to several seconds
+
+- we can aggregate across RDDS which is stateful
+
+
