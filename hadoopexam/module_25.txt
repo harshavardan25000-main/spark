@@ -1,0 +1,42 @@
+module_25.txt
+
+Spark Streaming Statefeull Transformations:
+==========================
+
+window transofrmation
+stateful: one batch is depended upon prevvious batches of RDD in a stream.
+
+ever 3 seconds is the batch:
+that means we cant work on a single batch...we need to wait for atleast 2 more batches to get 3 batches
+
+
+There are 2 tyoes:
+-sliding window of time periods
+-updateStateByKey:used to track state across evenets for each key
+
+
+Window transformaton is depended on two parameters:
+	-window duration - 3 sec
+		whenever you start calculation then you need to find how many prev batches of data needs to be considered.
+		current Batch + No of prev batch(2 sec)
+		1 sec 				2 sec
+	-sliding duration - by default this is equal to the batch interval
+	for every 2 sec..wait for 2 seconds and then calculate marking that as current. how frequently you want to calculate the results.
+
+	even though batches are not there, the batch starts with whatever we have.
+
+	window: it is a transformation which combines dstreams to produce a new dstream of the specified size.
+ 
+	reduceByKeyAndWindow: in each window
+
+	val datastream=ContentDataStream.map(word=>(word,1))
+	val countData=datastream.reduceByKeyAndWindw(
+{(x,y)=>x+y},
+ {(x,y)=>x-y}, //to avoid duplicate calculations, remove prev batch data
+seconds(3), //window duration
+seconds(2) // sliding duration
+	) 
+}
+reduceByWindow(): reducing data from each window without removng old batch data
+contByWindow(): number of elements in each window without removing dups
+countByValueAndWindow(): produce count for each value in window.
