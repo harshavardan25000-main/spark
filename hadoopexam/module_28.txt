@@ -1,0 +1,89 @@
+module_28.txt
+
+maven application: real time stock:
+===================================
+
+going to using eclipse maven.
+
+maven is a dependecy manager and helps us resolve all teh dependednceis...provide scala version, spark version,specify the dependencies..click maven install and maven update..it keeps the application ready..then save the application as jar..scp to the cluster and run it.
+
+package com.hadoopexam
+
+import org.apache.spark.{ SparkConf, SparkContext }
+import org.apache.spark.SparkContext._
+
+import org.apache.spark.streaming._
+import org.apache.spark.streaming.StreamingContext._
+
+object StockTradeStream extends Serializable {
+
+//Schema or case class definition for Single trade.
+case class Trade(symbol: String, date: String, time: String, prvclose: Double, bidprice: Double, askprice: Double, sellprice: Double, volume: Double)extends Serializable
+
+//Schema or case class definition for Company Names and Symbols.
+case class Company(symbol: String, fullname: String)extends Serializable
+
+
+// function to parse line of trade data into Trade class
+
+  def parseTrade(line: String): Trade = {
+    val t = line.split(",")
+    Trade(t(0), t(1), t(2), t(3).toDouble, t(4).toDouble, t(5).toDouble, t(6).toDouble, t(7).toDouble)
+  }
+  
+val batchInterval = 10 // Size of batch intervals
+
+  def main(args: Array[String]): Unit = { 
+   
+	val sparkConf = new SparkConf().setAppName("StockTradeApp").set("spark.files.overwrite", "true")
+    
+    val sc = new SparkContext(sparkConf)  
+    
+    
+    val ssc = new StreamingContext(sc, Seconds(batchInterval))
+    
+    val inputDStream = ssc.textFileStream("/user/cloudera/stream");
+    
+    inputDStream.print()
+    
+    val tradeDStream = inputDStream.map(parseTrade)
+    
+     tradeDStream.foreachRDD { tradeRDD =>
+
+      if (!tradeRDD.partitions.isEmpty) {
+
+        //filter all the trades , which has volume is more than 500 stocks
+        val bigTrade = tradeRDD.filter(trade => trade.volume > 500)
+        
+        
+        bigTrade.take(2).foreach(println)
+        
+        bigTrade.saveAsTextFile("/user/cloudera/stream_out")
+       
+      }
+    }
+    ssc.start()
+   
+    ssc.awaitTermination()
+}
+
+ 	
+    
+    
+
+}    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
