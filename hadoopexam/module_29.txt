@@ -1,0 +1,114 @@
+module_29.txt
+
+spark streaming with spark sql:
+===============================
+
+import functions which is average, Dstream and sqlcontext. sql.functions
+
+create singleton instance of sql context...what it means is if the instance is null go and create the object, if its not null then dont do anything
+
+Since this is streaming object we need to create singleton object...else it will keep on creating new object again and again y destroying new one.
+
+#study singeton design pattern
+
+package com.hadoopexam
+
+import org.apache.spark.{ SparkConf, SparkContext }
+import org.apache.spark.SparkContext._
+import org.apache.spark.sql.functions.avg
+import org.apache.spark.streaming._
+import org.apache.spark.streaming.StreamingContext._
+import org.apache.spark.streaming.dstream.DStream
+import org.apache.spark.sql.SQLContext
+
+import org.apache.spark.sql.functions._
+
+
+
+object StockTradeAnalytics extends Serializable { 
+
+case class Trade(symbol: String, datevalue: String, timevalue: String, prvclose: Double, bidprice: Double, askprice: Double, sellprice: Double, volume: Double)extends Serializable
+
+case class Company(symbol: String, fullname: String)extends Serializable
+
+// function to parse line of trade data into Trade class
+
+  def parseTrade(line: String): Trade = {
+    val t = line.split(",")
+    Trade(t(0), t(1), t(2), t(3).toDouble, t(4).toDouble, t(5).toDouble, t(6).toDouble, t(7).toDouble)
+  }
+  
+// function to parse line of company data data into Company class
+
+  def parseCompany(line: String): Company = {
+    val t = line.split(",")
+    Company(t(0), t(1))
+  }  
+  
+  val batchInterval = 10 // Size of batch intervals
+
+	 def main(args: Array[String]): Unit = {
+	 
+	 val sparkConf = new SparkConf().setAppName("StockTradeAnalyticsApp").set("spark.files.overwrite", "true")
+     val sc = new SparkContext(sparkConf)
+     
+     val sqlContext = SQLContextSingleton.getSQLContextInstance(sc)
+     import sqlContext.implicits._
+     import org.apache.spark.sql.functions._
+     
+    
+    val ssc = new StreamingContext(sc, Seconds(batchInterval))
+    
+    val inputDStream = ssc.textFileStream("/user/cloudera/stream");
+    
+    inputDStream.print()
+    
+    val tradeDStream = inputDStream.map(parseTrade)
+    
+     tradeDStream.foreachRDD { tradeRDD =>
+
+      if (!tradeRDD.partitions.isEmpty) {
+      
+        val sqlContext = new org.apache.spark.sql.SQLContext(tradeRDD.sparkContext)
+        import sqlContext.implicits._
+	 	
+	 	val tradeDF = tradeRDD.toDF()
+	 	
+	 	println("**********************market  data *************************")
+        tradeDF.show()
+        tradeDF.registerTempTable("trade")
+        
+        val resultSet = sqlContext.sql("SELECT symbol, datevalue,  avg(volume) as avgVolume,  avg(bidprice) as avgBid , MAX(volume) maxVolume FROM trade GROUP BY symbol,datevalue")
+        println("Stock Trade Statistics... ")
+        resultSet.show
+        
+         	val compRDD = sc.textFile("/user/cloudera/stream/companyname.csv").map(parseCompany)
+     		compRDD.take(5).foreach(println)
+     
+    		 val compDF = compRDD.toDF()
+     		compDF.registerTempTable("company")
+        
+        val joinedResultSet = sqlContext.sql("SELECT t.symbol, c.fullname , datevalue,  avg(volume) as avgVolume,  avg(bidprice) as avgBid , MAX(volume) maxVolume FROM trade t , company c where t.symbol = c.symbol GROUP BY t.symbol, c.fullname, datevalue")
+        
+         println("Stock Trade Statistics... ")
+        joinedResultSet.show
+        
+        }
+        }
+	    ssc.start()
+    	ssc.awaitTermination()
+	 }
+	 
+	object SQLContextSingleton {
+    @transient private var instance: SQLContext = _
+
+    def getSQLContextInstance(sparkContext: SparkContext): SQLContext = {
+      if (instance == null) {
+        instance = new SQLContext(sparkContext)
+      }
+      instance
+    }
+  }
+
+
+}
