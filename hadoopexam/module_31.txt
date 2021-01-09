@@ -1,0 +1,44 @@
+module_31.txt
+
+Data Partitioning:
+==================
+
+-distributing data across the nodes in cluster to imporve efficiency
+-biggest performance constraint while working on distributed platform
+	disk read and write
+	network traffic
+it is not always useful. if we are going to use RDD only once we dont need to partition.
+
+- when pair RDDs or dataset is reused multiple times, or lookup data , partitioning is used in join operation
+
+hashkey based partitioning:
+---------------------------
+hash value is calculated and based ont he hash value the data is sent to the respective nodes..but once they all go you dont want to partition it again and again..invoke persist() method on RDD
+
+customer_info RDD=> [id,list[book1,book2...]]
+
+every 10 min we get new data
+
+check which customers are interested but not subscribed
+
+goig to partition customer info..big table..no need to recalculate
+
+why partitioning will help?
+when join operation is called, the data from the big table is not shuffled but the new data gets trasmitted to the respective nodes which has their keys.
+
+val customerData=sc.textFile("id,list")
+					.partitionBy(new HashPartitioner(100))
+					.persist()
+ 
+ some operations by default create partitioned RDD:
+ sortByKey() - range partition
+ groupByKey() - hash partitioned RDD 
+
+ operations that benefit from partitioning:
+ ------------------------------------------
+
+ join, cogroup,rightouterjoin,lookup,groupwith,groupbykey,leftouterjoin,reducebykey,combinebykey
+
+ do join after reducebykey which will do it significantlly faster.
+
+ 
