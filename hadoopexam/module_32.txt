@@ -1,0 +1,54 @@
+module_32.txt
+
+Spark RDD Pair functions:
+=========================
+
+reduceByKey():
+-------------
+k1,(1,2)
+k1,(1,7)
+k1 is key and value is the tuple
+data exists in many partitions but dataRDD combines everything.
+
+dataRDD.reduceByKey(x,y=>x._1+y._1,x._2+y._2)
+
+first locally on each partition for each key is reduced.
+
+groupByKey():
+--------------
+val words= Array("one","two","two","hadoop","hadoop","hadoop")
+
+val generateRDD=sc.parallelize(words).map(x=>(x,1))
+
+generateRDD.groupByKey().map(t=>t._1+t._2.sum)
+
+hadoop->(1,1,1)
+one -> (1,1)
+two->(1)
+
+foldByKey():
+-------------
+fold():
+1,2,3,4,5
+fold(0){(acc,element)=>acc+element}
+val employee=List((cs,(amit,1000)),(cs,(rahul,1200)))
+
+foldByKey(dummykey,0.0)((acc,elem)) 
+
+combineByKey():
+---------------
+combineByKey(
+	createCombiner,
+	mergeValue,
+	MergeCombiner,
+	partitioner
+)
+createCombiner: when key comes firt time only then create combiner.
+mergeValue: when next time it comes for the same partition for same key then 
+..(acc:(Int,Int),v=>acc._1+v,acc._2+1)
+mergeCombiner: (acc1(Int,Int),acc2(Int,Int)=>acc._1+acc2._1,acc1._2+acc2._2)
+
+AggregateByKey():
+------------------
+this function also requires initial value, combiner function, merging function. 
+dataRDD.aggregateByKey(0)((acc:Int,v:String))
