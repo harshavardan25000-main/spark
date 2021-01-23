@@ -1,0 +1,389 @@
+Assessment_1.txt
+
+Exercise 1:
+-----------
+toDF() : method can be called on a sequence object to create a DF
+comes from import.spark.implicits._
+
+bad practice
+//create FD fro Sequence Object
+val dataDF=Seq(
+(1001,"Hadoop",7000)
+,(1002,"Spark",7000)
+,(1003,"Cassandra",7000)
+,(1004,"Python",7000)
+).toDF("course_id","course_name","course_fee")
+//create case class
+case class Learner(Name:String,Email:String,City:String)
+//create learner objects and RDD out of it
+val learnerObject= Array(
+Learner("Amit" , "amit@hadoopexam.com", "Mumbai")
+,Learner("Rakesh" , "rakesh@hadoopexam.com", "Pune")
+,Learner("Jonathan" , "jonathan@hadoopexam.com", "NewYork")
+,Learner("Michael" , "michael@hadoopexam.com", "Washington")
+,Learner("Simon" , "simon@hadoopexam.com", "HongKong")
+,Learner("Venkat" , "venkat@hadoopexam.com", "Chennai")
+,Learner("Roshni" , "roshni@hadoopexam.com", "anglore"))
+
+val learnerDF=sc.parallelize(learnerObject).toDF()
+or
+val heRDD=sc.parallelize(learnerObject)
+val learnerDF=spark.createDataFrame(heRDD)
+learnerDF.show
+
+createDataset requires an encoder to convert a JVM object of type T to and from the internal Spark SQL representation.
+Basically, encoders are what convert your data between JVM objects and Spark SQL"s specialized internal (tabular) representation. They"re required by all Datasets!
+
+Encoders are highly specialized and optimized code generators that generate custom bytecode for serialization and deserialization of your data.
+//Create Encoder
+
+import org.apache.spark.sql.Encoders
+val enc=Encoders.product[Learner]
+println(enc.schema)
+
+val heDS=learnerDF.as(enc)
+
+val heDS=learnerDF.as(enc)
+or
+val heDS=learnerDF.as[Learner]
+heDS.show(false)
+
+Exercise-2:
+-----------
+
+case class Learner(name:String,email:String,city:String)
+val learnerObject= Array(
+Learner("Amit" , "amit@hadoopexam.com", "Mumbai")
+,Learner("Rakesh" , "rakesh@hadoopexam.com", "Pune")
+,Learner("Jonathan" , "jonathan@hadoopexam.com", "NewYork")
+,Learner("Michael" , "michael@hadoopexam.com", "Washington")
+,Learner("Simon" , "simon@hadoopexam.com", "HongKong")
+,Learner("Venkat" , "venkat@hadoopexam.com", "Chennai")
+,Learner("Roshni" , "roshni@hadoopexam.com", "anglore"))
+
+val learnerDF=sc.parallelize(learnerObject).toDF()
+learnerDF.write.parquet("/user/vardanmanam7585/exer2.parquet")
+val inputParquet=spark.read.parquet("/user/vardanmanam7585/exer2.parquet")
+
+dbutils.fs.rm("/user/vardanmanam7585/exer2.parquet",true)
+
+Exercise-3:
+-----------
+case class HECourse(id:String,name:String,fee:Int,venue:String,duration:Int)
+import org.apache.spark.sql.Encoders
+val enc=Encoders.product[HECourse]
+
+val obj=Array(
+HECourse("1","hadoop",6000,"mumbai",5)
+,HECourse("2","Spark",5000,"Pune",4)
+,HECourse("3","Python",4000,"Hyderbad",3)
+,HECourse("4","Scala",4000,"Kolkata",3)
+,HECourse("5","Hbase",7000,"Bangalore",7)
+)
+val dfRDD=sc.parallelize(obj)
+val df=spark.createDataFrame(dfRDD)
+val ds=df.as(enc)
+ds.show(false)
+
+or val ds=dfRDD.toDS //since RDD has infor about all the coulmns
+//using scala function
+ds.filter(x=>x.fee>5000).show()
+//columns bases sql expression
+ds.filter("fee>5000").show()
+ds.filter("fee>5000").explain(true)
+
+Exercise 4:
+-----------
+case class Learner(id:Int,name:String,email:String,city:String,salary:Int)
+
+val Rdd=sc.parallelize(Array(Learner(1001, "Amit" , "amit@hadoopexam.com", "Mumbai",7000)
+,Learner(1002, "Rakesh" , "rakesh@hadoopexam.com",null,8000)
+,Learner(1003, "Rohit" , "rohit@hadoopexam.com", "Pune",9000)
+,Learner(1004, "Vinod" , "vinod@hadoopexam.com", null, 8000)
+,Learner(1005, "Venu" , "venu@hadoopexam.com",null , 6000)
+,Learner(1006, "Shyam" , "shyam@hadoopexam.com", "Newyork", 8000)
+,Learner(1007, "John" , "john@hadoopexam.com",null , 6000)))
+
+
+val df=spark.createDataFrame(Rdd)
+df.filter("city is null" ).show()
+
+df.na.fill("UNKNOWN").show()
+df.sum("salary")
+df.selectExpr("salary").groupBy().sum().getClass()
+df.selectExpr("salary").distinct().show()
+df.selectExpr("salary").distinct().groupBy().sum().show()
+
+or 
+
+df.agg(sum("fee")).show()
+
+Exercise 5:
+-----------
+val input=spark.read.format("csv").option("header",true).option("delimiter","|").load("hadoopexam_5.csv")
+input.withColumn("start_date",to_date(expr("sub_start_date"))).withColumn("end_date",to_date(expr("sub_end_date"))).drop("sub_start_date","sub_end_date").show
+
+val input_loc=input_dated.withColumn("city",split(expr("location"),"-")(0)).withColumn("state",split(expr("location"),"-")(1)).drop("location")
+input_loc.withColumn("length",datediff(expr("end_date"),expr("start_date"))).show
+
+Exercise 6:
+-----------
+val input_json=spark.read.format("json").load("he.json")
+val input_schema=StructType(Array(StructField("id",LongType,true),StructField("name",StringType,true),StructField("Fee",LongType,true),StructField("venue",StringType,true),StructField("duration",LongType,true)))
+
+Exercise 7:
+------------
+val input=Array(
+Row(1001, "Amit Kumar" , 10000.0 , "Mumbai" , 5)
+,Row(1002, "John" , 10000.0 , "Mumbai" , 5)
+,Row(1003, "Venkat" , 10000.0 , "Delhi" , 5)
+,Row(1004, "Sarfraj" , 10000.0 , "Kolkata" , 5))
+
+import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.StructField
+import org.apache.spark.sql.types.LongType
+import org.apache.spark.sql.types.StringType
+import org.apache.spark.sql.types.IntegerType
+import org.apache.spark.sql.types.DoubleType
+
+val exe7=StructType(
+Array(
+ StructField("id",IntegerType,false)
+,StructField("name",StringType,false)
+,StructField("fee",DoubleType,false)
+,StructField("venue",StringType,false)
+,StructField("duration",IntegerType,false)
+)
+)
+val inputDF=spark.createDataFrame(spark.sparkContext.parallelize(input),StructType(exe7))
+or
+val inputDF=spark.createDataFrame(sc.parallelize(input),exe7)
+inputDF.select("name").show
+inputDF.select("name","id").show
+inputDF.select("id").withColumn("course_id",expr("id")).show
+inputDF.selectExpr("avg(fee)").show
+inputDF.selectExpr("*","id as course_id").show
+
+Exercise 8:
+-----------
+Array(
+Row(1001, "Amit Kumar" , 10000.0 , "Mumbai" , 5)
+,Row(1002, "John" , 9000.0 , "Mumbai" , 5)
+,Row(1003, "Venkat" , 6000.0 , "Delhi" , 5)
+,Row(1004, "Sarfraj" , 12000.0 , "Kolkata" , 5)
+)
+
+Array(
+Row(1005, "Manoj" , 15000.0 , "Banglore" , 5)
+,Row(1006, "Jasmin" , 16000.0 , "Mumbai" , 5)
+,Row(1007, "Reegal" , 8000.0 , "Banglore" , 5)
+,Row(1008, "Sayed" , 7000.0 , "Banglore" , 5)
+)
+val df1=spark.createDataFrame(sc.parallelize(in1),exe7)
+val df2=spark.createDataFrame(sc.parallelize(in2),exe7)
+
+df1.union(df2).show
+df1.union(df2).where("venue=='Mumbai'").show
+df1.withColumn("website",lit("hadoopexam.com")).show
+
+Exercise 9:
+------------
+val input=Array(
+Row(1001, "Amit Kumar" , 10000.0 , "Mumbai" , 5)
+,Row(1002, "John" , 9000.0 , "Mumbai" , 5)
+,Row(1003, "Venkat" , 6000.0 , "Delhi" , 5)
+,Row(1004, "Sarfraj" , 12000.0 , "Kolkata" , 5)
+,Row(1005, "Manoj" , 15000.0 , "Banglore" , 5)
+,Row(1006, "Jasmin" , 16000.0 , "Mumbai" , 5)
+,Row(1007, "Reegal" , 8000.0 , "Banglore" , 5)
+,Row(1008, "Sayed" , 7000.0 , "Banglore" , 5)
+)
+val exe7=StructType(
+Array(
+ StructField("id",IntegerType,false)
+,StructField("name",StringType,false)
+,StructField("fee",DoubleType,false)
+,StructField("venue",StringType,false)
+,StructField("duration",IntegerType,false)
+)
+)
+
+val inputDF=spark.createDataFrame(sc.parallelize(input),exe7)
+
+//getNumOfPartitions
+inputDF.rdd.getNumPartitions
+
+repartition increases or decreases the partitions and coalesce can decrease only 
+
+Exercise 10:
+------------
+val input=Array(
+Row(1001, "Amit Kumar" , 10000.0 , "Mumbai" , 5)
+,Row(1002, "John" , 10000.0 , "Mumbai" , 5)
+,Row(1003, "Venkat" , 10000.0 , "Delhi" , 5)
+,Row(1004, "Sarfraj" , 10000.0 , "Kolkata" , 5)
+,Row(1005, "Manoj" , 11000.0 , "Banglore" , 5)
+,Row(1006, "Jasmin" , 11000.0 , "Mumbai" , 5)
+,Row(1007, "Reegal" , 11000.0 , "Banglore" , 5)
+,Row(1008, "Sayed" , 11000.0 , "Banglore" , 5)
+,Row(1005, "Mike" , 15000.0 , "Newyork" , 7)
+,Row(1006, "Javier" , 14000.0 , "Washington" , 3)
+,Row(1007, "Ronak" , 16000.0 , "London" , 4)
+,Row(1008, "Fiaz" , 19000.0 , "Baltimor" , 7)
+)
+val inputDF=spark.createDataFrame(sc.parallelize(input),exe7)
+inputDF.select("name","duration","id").filter("fee!=10000").show
+
+inputDF.select("name","duration","id").filter("duration>5 and venue!='Mumbai' and fee!=10000").show
+
+Exercise 11:
+------------
+inputDF.withColumn("TotalFee",expr("round(0.18367*fee+fee,2)")).show
+
+nputDF.describe("fee").show
+
+Exercise 12:
+------------
+val input=Array(
+ Row("Amit Kumar" , 10000.0 , "Mumbai" , 5)
+,Row("John" , 10000.0 , "Mumbai" , 5)
+,Row("Venkat" , 10000.0 , "Delhi" , 5)
+,Row("Sarfraj" , 10000.0 , "Kolkata" , 5)
+,Row("Manoj" , 11000.0 , "Banglore" , 5)
+,Row("Jasmin" , 11000.0 , "Mumbai" , 5)
+,Row("Reegal" , 11000.0 , "Banglore" , 5)
+,Row("Sayed" , 11000.0 , "Banglore" , 5)
+,Row("Mike" , 15000.0 , "Newyork" , 7)
+,Row("Javier" , 14000.0 , "Washington" , 3)
+,Row("Ronak" , 16000.0 , "London" , 4)
+,Row("Fiaz" , 19000.0 , "Baltimor" , 7)
+)
+val exe7=StructType(
+Array(
+ StructField("name",StringType,false)
+,StructField("fee",DoubleType,false)
+,StructField("venue",StringType,false)
+,StructField("duration",IntegerType,false)
+)
+)
+val inputDF=spark.createDataFrame(sc.parallelize(input),exe7)
+
+import org.apache.spark.sql.functions.monotonically_increasing_id
+inputDF.selectExpr("monotonically_increasing_id() as uniqueid","*").show
+inputDF.selectExpr("*","initcap(venue)as venue").show
+
+Exercise 13:
+------------
+
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.StructField
+import org.apache.spark.sql.types.LongType
+import org.apache.spark.sql.types.StringType
+import org.apache.spark.sql.types.IntegerType
+import org.apache.spark.sql.types.DoubleType
+
+val exe7=StructType(
+Array(
+StructField("id",IntegerType,false)
+,StructField("name",StringType,false)
+,StructField("fee",DoubleType,false)
+,StructField("venue",StringType,false)
+,StructField("duration",IntegerType,false)
+,StructField("detail",StringType,false)
+)
+)
+
+val input = Array(
+Row(1001, "Amit Kumar" , 10000.0 , "Mumbai" , 5 , "Hadoop and Spark Training by HadoopExam.com")
+,Row(1002, "John" , 10000.0 , "Mumbai" , 5, "AWS Training by HadoopExam.com")
+,Row(1003, "Venkat" , 10000.0 , "Delhi" , 5, "Cassandra Training by HadoopExam.com")
+,Row(1004, "Sarfraj" , 10000.0 , "Kolkata" , 5, "Java and Python Training by HadoopExam.com")
+,Row(1005, "Manoj" , 11000.0 , "Banglore" , 5, "FinTech Training by HadoopExam.com")
+,Row(1006, "Jasmin" , 11000.0 , "Mumbai" , 5, "IOT Training by HadoopExam.com")
+,Row(1007, "Reegal" , 11000.0 , "Banglore" , 5, "Hadoop and Spark Training by HadoopExam.com")
+,Row(1008, "Sayed" , 11000.0 , "Banglore" , 5, "Hadoop and Spark Training by HadoopExam.com")
+,Row(1009, "Mike" , 15000.0 , "Newyork" , 7, "Hadoop and Spark Training by HadoopExam.com")
+,Row(1010, "Javier" , 14000.0 , "Washington" , 3, "Hadoop and Spark Training by HadoopExam.com")
+,Row(1011, "Ronak" , 16000.0 , "London" , 4, "Hadoop and Spark Training by HadoopExam.com")
+,Row(1012, "Fiaz" , 19000.0 , "Baltimor" , 7, "AWS Training by QuickTechie.com")
+,Row(1013, "Vikram" , 19000.0 , "Baltimor" , 7, "Cassandra Training by QuickTechie.com")
+,Row(1014, "Deepak" , 19000.0 , "Baltimor" , 7, "Java Training by QuickTechie.com")
+,Row(1015, "Venugopal" , 19000.0 , "Baltimor" , 7, "Oracle DBA Training by QuickTechie.com")
+
+)
+val inputDF=spark.createDataFrame(sc.parallelize(input),exe7)
+import org.apache.spark.sql.functions.regexp_replace
+inputDF.withColumn("detail",regexp_replace(expr("detail"),"Hadoop|Spark|AWS|Java|Python|Cassandra","common")).show
+
+import org.apache.spark.sql.functions.regexp_extract
+val extract_str="(Hadoop|Spark|AWS|IOT)"
+inputDF.withColumn("first_occurence",regexp_extract(expr("detail"),extract_str,1)).show(false)
+
+inputDF.withColumn("first",regexp_extract(expr("detail"),extract_str,1)).drop("detail").withColumnRenamed("first","CourseName")show
+
+//sample case when in spark
+df.withColumn
+	(
+	"new_gender",
+
+	 when(col("gender") === "M","Male")
+	.when(col("gender") === "F","Female")
+	.otherwise("Unknown")
+	)
+
+inputDF.withColumn("first",regexp_extract(expr("detail"),extract_str,1)).drop("detail").withColumnRenamed("first","CourseName").withColumn("new_courseName",when(expr("CourseName<>''"),expr("CourseName")).otherwise("Spark"))show
+
+Exercise 14:
+------------
+val exe7=StructType(
+Array(
+StructField("id",IntegerType,false)
+,StructField("name",StringType,false)
+,StructField("fee",DoubleType,false)
+,StructField("venue",StringType,false)
+,StructField("SubsStartDate",StringType,false)
+,StructField("SubsEndDate",StringType,false)
+)
+)
+
+val input=Array(
+Row(1001, "Amit Kumar" , 10000.0 , "Mumbai" , "28-Jan-2018", "28-Jan-2019")
+,Row(1002, "John" , 10000.0 , "Mumbai" ,  "21-Feb-2018", "21-Feb-2019")
+,Row(1003, "Venkat" , 10000.0 , "Delhi" ,  "11-Mar-2018", "11-Jun-2019")
+,Row(1004, "Sarfraj" , 10000.0 , "Kolkata" , "28-Apr-2018", "28-Aug-2019")
+,Row(1005, "Manoj" , 11000.0 , "Banglore" , "28-Jan-2019", "28-Jan-2020")
+,Row(1006, "Jasmin" , 11000.0 , "Mumbai" ,  "28-Jan-2018", "28-Jan-2021")
+,Row(1007, "Reegal" , 11000.0 , "Banglore" ,  "28-Jan-2018", "28-Jan-2020")
+,Row(1008, "Sayed" , 11000.0 , "Banglore" ,  "28-Jan-2018", "28-Jan-2021")
+,Row(1009, "Mike" , 15000.0 , "Newyork" ,  "28-Jan-2018", "28-Jan-2020")
+,Row(1010, "Javier" , 14000.0 , "Washington" , "28-Jan-2018", "28-Jan-2022")
+,Row(1011, "Ronak" , 16000.0 , "London" ,  "28-Jan-2018", "28-Jan-2024")
+,Row(1012, "Fiaz" , 19000.0 , "Baltimor" ,  "28-Jan-2018", "28-Jan-2023")
+,Row(1013, "Vikram" , 19000.0 , "Baltimor" ,  "28-Jan-2018", "28-Jan-2021")
+,Row(1014, "Deepak" , 19000.0 , "Baltimor" ,  "28-Jan-2018", "28-Jan-2020")
+,Row(1015, "Venugopal" , 19000.0 , "Baltimor" ,  "28-Jan-2018", "28-May-2019")
+)
+
+val inputDF=spark.createDataFrame(sc.parallelize(input),exe7)
+inputDF.withColumn("SubsStartDate",date(expr("SubsStartDate"))).show
+
+inputDF.withColumn("NumberOfDays",datediff(expr("SubsStartDate"),expr("SubsEndDate"))).show
+
+inputDF.withColumn("StartDate",to_date(expr("SubsStartDate"),"dd-MMM-yyyy")).show
+
+Exercise 15:
+------------
+inputDF.na.drop("all")
+
+drop only when venue and detail both are null
+
+inputDF.na.drop("all",Seq("Venue","detail"))
+
+remove aany rows with null
+inputDF.na.drop()
+
+fill
+
+inputDF.na.fill("---")
+inputDF.na.fill(Map("Fee"->1000,"Name"->"Auditor","Venue"->"Mumbai","Duration"-> 5))
